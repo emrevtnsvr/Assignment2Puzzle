@@ -12,12 +12,12 @@ public class ImageSlicer : MonoBehaviour
     GridLayoutGroup gridLayoutGroup;
     int tileWidth, tileHeight;
 
-    void Start()
-    {
-        SliceImage(3, 3);
-    }
+    //void Start()
+    //{
+    //    SliceImage(3, 3);
+    //}
 
-    void SliceImage(int rows,int cols)
+    public void SliceImage(int rows,int cols)
     {
         gridLayoutGroup = puzzleContainer.GetComponent<GridLayoutGroup>();
 
