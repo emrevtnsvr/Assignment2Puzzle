@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using TMPro;
 using UnityEngine;
@@ -19,6 +21,8 @@ public class GameManager : MonoBehaviour
     ImageSlicer imageSlicer;
     List<Tile> tiles = new List<Tile>();
 
+    bool allowedInput;
+
     void Awake()
     {
         instance = this;
@@ -33,6 +37,8 @@ public class GameManager : MonoBehaviour
         InitializeGrid();
 
         Invoke("DisableGridLayout", 0.5f);
+
+        StartCoroutine(ShuffleGrid(8));
     }
 
     void DisableGridLayout()
@@ -70,11 +76,15 @@ public class GameManager : MonoBehaviour
                 number++;
             }
         }
-        PrintGrid();
+        //PrintGrid();
     } 
 
     public void TryMoveTile(Tile tile)
     {
+        if (!allowedInput)
+        {
+            return;
+        }
         if (IsAdjacent(tile.GridPosition))
         {
             StartCoroutine(SwapTiles(tile, false));
@@ -108,9 +118,14 @@ public class GameManager : MonoBehaviour
 
         SwapGridPosition(previewsEmpty,emptyTile);
 
-        PrintGrid();
+        //PrintGrid();
 
-            yield return null;
+        if (!isShuffleMove && IsComplete())
+        {
+            Debug.Log("Game Won");
+
+            allowedInput = false;
+        }
     }
 
     Vector2 GetPositionForGrid(Vector2Int gridPos)
@@ -133,12 +148,12 @@ public class GameManager : MonoBehaviour
         string s = "";
         for (int y = 0; y < rows; y++)
         {
-            for (int x = 0; x< columns; x++)
+            for (int x = 0; x < columns; x++)
             {
                 s += grid[x, y] + " ";
                 if(x == columns - 1)
                 {
-                    s += "\n";
+                    s += "\n ";
                 }
             }
             Debug.Log("grid : \n" + s);
@@ -150,5 +165,87 @@ public class GameManager : MonoBehaviour
         int temp = grid[first.x, first.y];
         grid[first.x, first.y] = grid[second.x, second.y];
         grid[second.x, second.y] = temp;
+    }
+
+    IEnumerator ShuffleGrid(int shuffleMoves = 50)
+    {
+        Vector2Int lastMove = emptyTile;
+        for (int i = 0; i < shuffleMoves; i++)
+        {
+            List<Vector2Int> possibleMoves = new List<Vector2Int>
+            {
+                new Vector2Int(emptyTile.x + 1, emptyTile.y),
+                new Vector2Int(emptyTile.x - 1, emptyTile.y),
+                new Vector2Int(emptyTile.x, emptyTile.y + 1),
+                new Vector2Int(emptyTile.x, emptyTile.y - 1),
+            };
+
+            //DebugMoves(possibleMoves);
+
+            possibleMoves = possibleMoves.FindAll(pos => pos.x >= 0 && pos.x < columns && pos.y >=0 && pos.y < rows);
+            //DebugMoves(possibleMoves);
+            //Debug.Log("Last move:" + lastMove);
+
+            possibleMoves.RemoveAll(pos =>pos == lastMove);
+            //DebugMoves(possibleMoves); 
+
+            if (possibleMoves.Count == 0)
+            {
+                continue;
+            }
+
+            Vector2Int selectMove = possibleMoves[Random.Range(0, possibleMoves.Count)];
+
+            Tile tileMove = tiles.FirstOrDefault(t => t.GridPosition == selectMove);
+            if(tileMove != null)
+            {
+                lastMove = emptyTile;
+
+                yield return StartCoroutine(SwapTiles(tileMove, true));
+                
+                emptyTile = selectMove;
+            }
+
+        }
+
+        allowedInput = true;
+
+    }
+
+    void DebugMoves(List<Vector2Int> list)
+    {
+        string s = "s";
+        foreach( var item in list)
+        {
+            s += "|";
+        }
+
+        Debug.Log("Possible Move List :" + s);
+    }
+
+    bool IsComplete()
+    {
+        int expectedNumber = 1;
+        bool emptyTileAtEnd = true;
+        for( int y = 0; y < rows; y++)
+        {
+            for (int x = 0 ; x < columns; x++)
+            {
+                if(x== columns-1 && y == rows - 1)
+                {
+                    if (grid[x,y] != 0)
+                    {
+                        emptyTileAtEnd = false;
+                    }
+                    continue;
+                }
+                if(grid[x,y] != expectedNumber)
+                {
+                    return false;
+                }
+                expectedNumber++;
+            }
+        }
+        return emptyTileAtEnd;
     }
 }
