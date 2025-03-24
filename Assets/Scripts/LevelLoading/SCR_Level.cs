@@ -2,17 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SCR_Level : MonoBehaviour
+[CreateAssetMenu(fileName = "New Level", menuName = "Sliding Puzzle/Level")]
+public class SCR_Level : ScriptableObject
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public Vector2Int size = new Vector2Int(3,3);
+    public Texture2D imagePuzzle;
+    public Sprite previewImage;
 }

@@ -6,6 +6,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
@@ -22,6 +23,12 @@ public class GameManager : MonoBehaviour
     List<Tile> tiles = new List<Tile>();
 
     bool allowedInput;
+    bool isMoving;
+
+    [Header("Exit Button")]
+    [SerializeField] Button exitButton;
+    [SerializeField] Button exitButton2;
+    [SerializeField] GameObject winPanel;
 
     void Awake()
     {
@@ -30,15 +37,27 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        winPanel.SetActive(false);
+        exitButton.onClick.AddListener(ExitLevel);
+        exitButton2.onClick.AddListener(ExitLevel);
         imageSlicer = GetComponent<ImageSlicer>();
 
-        imageSlicer.SliceImage(rows, columns);
+        if(LevelData.levelSize != Vector2Int.zero)
+        {
+            rows= LevelData.levelSize.y;
+            columns= LevelData.levelSize.x;
+            imageSlicer.SliceImage(rows, columns,LevelData.imageToPuzzle);
+        }
+        else
+        {
+            imageSlicer.SliceImage(rows, columns, null);
+        }
 
         InitializeGrid();
 
         Invoke("DisableGridLayout", 0.5f);
-
-        StartCoroutine(ShuffleGrid(8));
+        int shuffleAmount = (rows > 8 || columns > 8) ? 500 : (rows > 6 || columns > 6) ? 350 : 50;
+        StartCoroutine(ShuffleGrid(shuffleAmount));
     }
 
     void DisableGridLayout()
@@ -46,7 +65,7 @@ public class GameManager : MonoBehaviour
         puzzleContainer.GetComponent<GridLayoutGroup>().enabled = false;
     }
 
-   void InitializeGrid()
+    void InitializeGrid()
     {
         grid = new int [rows , columns];
         int number = 1;
@@ -78,6 +97,11 @@ public class GameManager : MonoBehaviour
         }
         //PrintGrid();
     } 
+
+    public void SetIsMoving(bool _isMoving)
+    {
+        isMoving = _isMoving;
+    }
 
     public void TryMoveTile(Tile tile)
     {
@@ -125,6 +149,8 @@ public class GameManager : MonoBehaviour
             Debug.Log("Game Won");
 
             allowedInput = false;
+
+            winPanel.SetActive(true);
         }
     }
 
@@ -247,5 +273,10 @@ public class GameManager : MonoBehaviour
             }
         }
         return emptyTileAtEnd;
+    }
+
+    void ExitLevel()
+    {
+        SceneManager.LoadScene("LevelSelect");
     }
 }

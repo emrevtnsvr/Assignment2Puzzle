@@ -17,8 +17,13 @@ public class ImageSlicer : MonoBehaviour
     //    SliceImage(3, 3);
     //}
 
-    public void SliceImage(int rows,int cols)
+    public void SliceImage(int rows,int cols, Texture2D imageToSlice)
     {
+        if(imageToSlice != null)
+        {
+            sourceImage = imageToSlice;
+        }
+
         gridLayoutGroup = puzzleContainer.GetComponent<GridLayoutGroup>();
 
         float spacingX = gridLayoutGroup.spacing.x;

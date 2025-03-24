@@ -24,6 +24,7 @@ public class Tile : MonoBehaviour, IPointerClickHandler
     }
     public IEnumerator AnimateMove(Vector2 targetPosition, float duration = 0.2f)
     {
+        GameManager.instance.SetIsMoving(true);
         Vector2 startPosition = rectTransform.anchoredPosition;
         float elapsedTime = 0;
 
@@ -33,7 +34,8 @@ public class Tile : MonoBehaviour, IPointerClickHandler
             rectTransform.anchoredPosition = Vector2.Lerp(startPosition, targetPosition, elapsedTime/duration);
             yield return null;
         }
-        rectTransform.anchoredPosition = targetPosition; ;
+        rectTransform.anchoredPosition = targetPosition;
+        GameManager.instance.SetIsMoving(false);
     }
     public void SetGridPos(Vector2Int newpos)
     {
